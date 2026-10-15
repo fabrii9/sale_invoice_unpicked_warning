@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="unpicked_warning_wizard_form" model="ir.ui.view">
+        <field name="name">unpicked.warning.wizard.form</field>
+        <field name="model">unpicked.warning.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Mercadería sin separar">
+                <field name="warning_html" nolabel="1"/>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirmar factura igual" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
