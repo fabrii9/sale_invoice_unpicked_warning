@@ -5,9 +5,14 @@
         <field name="model">unpicked.warning.wizard</field>
         <field name="arch" type="xml">
             <form string="Mercadería sin separar">
+                <field name="can_invoice_separated" invisible="1"/>
                 <field name="warning_html" nolabel="1"/>
                 <footer>
                     <button name="action_confirm" type="object" string="Confirmar factura igual" class="btn-primary" data-hotkey="q"/>
+                    <button name="action_invoice_only_separated" type="object"
+                            string="Facturar solo lo separado" class="btn-secondary"
+                            invisible="not can_invoice_separated"
+                            confirm="Se van a reducir las cantidades del borrador a lo separado. Lo demás queda pendiente de facturar en el pedido."/>
                     <button string="Cancelar" class="btn-secondary" special="cancel" data-hotkey="x"/>
                 </footer>
             </form>

@@ -32,15 +32,34 @@ class AccountMove(models.Model):
                     m.product_uom._compute_quantity(m.quantity, sale_line.product_uom)
                     for m in first_step.filtered(lambda m: m.state == "done")
                 )
-                pending = sale_line.product_uom_qty - done
+                # Cantidad de esta factura y de las demás facturas vigentes del pedido.
+                this_lines = move.invoice_line_ids.filtered(
+                    lambda l, sl=sale_line: sl in l.sale_line_ids
+                )
+                this_qty = sum(
+                    l.product_uom_id._compute_quantity(l.quantity, sale_line.product_uom)
+                    for l in this_lines
+                )
+                other_qty = 0.0
+                for l in sale_line.invoice_lines:
+                    if l.move_id == move or l.move_id.state == "cancel":
+                        continue
+                    sign = -1 if l.move_id.move_type == "out_refund" else 1
+                    other_qty += sign * l.product_uom_id._compute_quantity(
+                        l.quantity, sale_line.product_uom
+                    )
+                excess = this_qty + other_qty - done
+                pending = min(this_qty, excess)
                 if pending <= 0:
                     continue
                 waiting = first_step.filtered(lambda m: m.state != "done")
                 data.append({
                     "invoice": move,
                     "order": sale_line.order_id,
+                    "sale_line": sale_line,
+                    "invoice_lines": this_lines,
                     "product": product,
-                    "ordered": sale_line.product_uom_qty,
+                    "in_invoice": this_qty,
                     "picked": done,
                     "pending": pending,
                     "pickings": waiting.picking_id,
@@ -59,6 +78,7 @@ class AccountMove(models.Model):
         wizard = self.env["unpicked.warning.wizard"].create({
             "move_ids": [(6, 0, self.ids)],
             "warning_html": self.env["unpicked.warning.wizard"]._build_html(data),
+            "can_invoice_separated": any(d["in_invoice"] > d["pending"] for d in data),
         })
         return {
             "type": "ir.actions.act_window",
