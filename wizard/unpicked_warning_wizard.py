@@ -35,7 +35,7 @@ class UnpickedWarningWizard(models.TransientModel):
             "<th class='text-end'>%s</th><th>%s</th></tr></thead><tbody>%s</tbody></table>"
         ) % (
             escape(_("Estás por confirmar una factura con mercadería que todavía no se separó (primer paso de la entrega):")),
-            escape(_("Pedido")), escape(_("Producto")), escape(_("Pedido")),
+            escape(_("Pedido")), escape(_("Producto")), escape(_("Cantidad")),
             escape(_("Separado")), escape(_("Pendiente")), escape(_("Operación")), rows,
         )
         return header
