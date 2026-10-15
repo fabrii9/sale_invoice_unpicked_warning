@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <!-- Solo el botón "Confirmar" de facturas (no asientos). -->
-            <xpath expr="//button[@name='action_post'][@string='Confirm']" position="attributes">
+            <xpath expr="//button[@name='action_post'][contains(@invisible,'display_inactive_currency_warning')]" position="attributes">
                 <attribute name="name">action_post_con_aviso_separacion</attribute>
             </xpath>
         </field>
