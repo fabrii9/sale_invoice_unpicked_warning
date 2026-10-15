@@ -63,7 +63,7 @@ class UnpickedWarningWizard(models.TransientModel):
         data = self.move_ids._unpicked_lines_data()
         if any(m.state != "draft" for m in self.move_ids):
             raise UserError(_("Solo se puede recortar una factura en borrador."))
-        if not any(d["in_invoice"] > d["pending"] for d in data):
+        if not self.move_ids._has_separated_lines():
             raise UserError(_("No hay nada separado para facturar todavía."))
         summary = {}
         for item in data:

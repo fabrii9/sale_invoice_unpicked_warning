@@ -5,7 +5,7 @@ from odoo import _, models
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    def _unpicked_lines_data(self):
+    def _picking_status_data(self):
         """Productos de las facturas de venta (no POS) cuyo pedido todavía no
         pasó el primer paso de la entrega.
 
@@ -49,9 +49,7 @@ class AccountMove(models.Model):
                         l.quantity, sale_line.product_uom
                     )
                 excess = this_qty + other_qty - done
-                pending = min(this_qty, excess)
-                if pending <= 0:
-                    continue
+                pending = max(0.0, min(this_qty, excess))
                 waiting = first_step.filtered(lambda m: m.state != "done")
                 data.append({
                     "invoice": move,
@@ -69,6 +67,15 @@ class AccountMove(models.Model):
                 })
         return data
 
+    def _unpicked_lines_data(self):
+        """Solo las líneas con mercadería sin separar."""
+        return [d for d in self._picking_status_data() if d["pending"] > 0]
+
+    def _has_separated_lines(self):
+        """True si alguna línea de la factura tiene algo ya separado (es decir,
+        recortar la factura a lo separado no la deja vacía)."""
+        return any(d["in_invoice"] > d["pending"] for d in self._picking_status_data())
+
     def action_post_con_aviso_separacion(self):
         """Botón "Confirmar" del formulario de factura: si hay mercadería sin
         separar abre un aviso (no bloquea: se puede confirmar igual)."""
@@ -78,7 +85,7 @@ class AccountMove(models.Model):
         wizard = self.env["unpicked.warning.wizard"].create({
             "move_ids": [(6, 0, self.ids)],
             "warning_html": self.env["unpicked.warning.wizard"]._build_html(data),
-            "can_invoice_separated": any(d["in_invoice"] > d["pending"] for d in data),
+            "can_invoice_separated": self._has_separated_lines(),
         })
         return {
             "type": "ir.actions.act_window",
